@@ -42,7 +42,10 @@ function toApiError(error: unknown): ApiError {
   if (error instanceof ApiError) return error
   if (axios.isCancel(error)) return new ApiError(0, 'CANCELLED', 'Request was cancelled')
   if (error instanceof AxiosError) {
-    if (!error.response) return new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server')
+    if (!error.response) {
+      const timedOut = error.code === 'ETIMEDOUT' || (error.code === 'ECONNABORTED' && /timeout/i.test(error.message))
+      return timedOut ? new ApiError(0, 'TIMEOUT', 'The server did not respond in time') : new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server')
+    }
     const body = error.response.data as Partial<ApiErrorBody> | undefined
     return new ApiError(
       error.response.status,
@@ -60,6 +63,9 @@ export function cleanParams(params: object): Record<string, string | number | bo
     Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ''),
   )
 }
+
+/** העלאה כוללת עיבוד בשרת והעברה ל-Cloudinary (עד 10 קבצים של 5MB), ובענן גם זמן התעוררות של השרת */
+const UPLOAD_TIMEOUT_MS = 5 * 60_000
 
 export type UploadOptions = {
   onProgress?: (percent: number) => void
@@ -80,6 +86,7 @@ export const apiClient = {
     (
       await http.post<T>(path, form, {
         signal: options.signal,
+        timeout: UPLOAD_TIMEOUT_MS,
         onUploadProgress: (event: AxiosProgressEvent) => {
           if (options.onProgress && event.total) options.onProgress(Math.round((event.loaded / event.total) * 100))
         },

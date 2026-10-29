@@ -24,6 +24,7 @@ const ERROR_MESSAGES_HE: Record<string, string> = {
   GOOGLE_AUTH_NOT_CONFIGURED: 'התחברות עם Google אינה זמינה כרגע',
   INTERNAL_ERROR: 'אירעה שגיאה בשרת. נסו שוב',
   NETWORK_ERROR: 'אין חיבור לשרת. בדקו את החיבור ונסו שוב',
+  TIMEOUT: 'השרת לא הגיב בזמן. ייתכן שהפעולה עדיין מתבצעת – רעננו את העמוד לפני שתנסו שוב',
   CANCELLED: 'הפעולה בוטלה',
 }
 

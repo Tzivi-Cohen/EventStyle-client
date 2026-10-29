@@ -1,3 +1,4 @@
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { http as mswHttp, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { API, db, server, TOKENS } from '../test/server'
@@ -30,6 +31,20 @@ describe('central Axios instance', () => {
   it('a network failure becomes NETWORK_ERROR (status 0)', async () => {
     server.use(mswHttp.get(`${API}/packages`, () => HttpResponse.error()))
     await expect(apiClient.get('/packages')).rejects.toMatchObject({ status: 0, code: 'NETWORK_ERROR' })
+  })
+
+  it('a request that times out becomes TIMEOUT, not NETWORK_ERROR', async () => {
+    const adapter = (config: InternalAxiosRequestConfig) =>
+      Promise.reject(new AxiosError('timeout of 20ms exceeded', 'ECONNABORTED', config))
+    await expect(http.get('/packages', { adapter })).rejects.toMatchObject({ status: 0, code: 'TIMEOUT' })
+  })
+
+  it('uploads get a longer timeout than regular requests (server processing + Cloudinary)', async () => {
+    const post = vi.spyOn(http, 'post').mockResolvedValue({ data: {} })
+    await apiClient.upload('/gallery', new FormData())
+    expect(post.mock.calls[0][2]?.timeout).toBe(5 * 60_000)
+    expect(http.defaults.timeout).toBe(60_000)
+    post.mockRestore()
   })
 
   it('401 UNAUTHORIZED clears the token and notifies the app; 401 INVALID_CREDENTIALS does not', async () => {

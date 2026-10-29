@@ -194,7 +194,18 @@ npm run check       # typecheck + lint + test + build
 - [render.yaml](render.yaml) מגדיר Static Site: `npm ci && npm run build`, פרסום `dist`, ו־**rewrite של כל נתיב ל־`index.html`** – כך רענון של `/my-events/5` או קישור ישיר עובדים עם `BrowserRouter`.
 - `VITE_API_URL` ו־`VITE_GOOGLE_CLIENT_ID` מוגדרים ב־Render ונכנסים לקוד בזמן ה־Build. אחרי שינוי – Build חדש.
 - בשרת: `CORS_ORIGIN` = כתובת האתר. ב־Google Cloud Console: כתובת האתר ב־Authorized JavaScript origins.
-- ההוראות המלאות, צעד אחר צעד: `backend/DEPLOYMENT.md`.
+- ההוראות המלאות, צעד אחר צעד: `DEPLOYMENT.md` ב־Repository של השרת.
+
+## 13. סטטוס מימוש הדרישות
+
+הפירוט המלא, דרישה אחר דרישה, עם הקבצים ואופן הבדיקה: [FRONTEND-REQUIREMENTS-CHECKLIST.md](FRONTEND-REQUIREMENTS-CHECKLIST.md).
+
+| מצב | דרישות |
+|---|---|
+| ✅ הושלמו ונבדקו (22) | 1–15, 17, 21–26: תכנון, מבנה, State, Swagger, קריאות API, התחברות, Token, AuthContext, ניתובים, useQuery, ארבעת המצבים, טפסים, עדכון אחרי שינוי, ENV, Axios מרכזי, אותו Client בסביבות שונות, Status Codes, איתור תקלות, חוויית משתמש, TypeScript, README, צ'קליסט הגשה |
+| 🟠 חלקיות (4) | 16 סביבות, 18 Build ו־Production, 19 בדיקות ידניות, 20 סוגי בדיקות |
+
+הדרישות החלקיות לא תלויות בקוד. חסרים להן שרת QA ושרת Production בפועל, כתובת API של Production, ובדיקה ידנית מלאה מול השרת האמיתי. **הפרויקט עדיין לא נפרס לענן.**
 
 ## פתרון תקלות
 
@@ -208,4 +219,6 @@ npm run check       # typecheck + lint + test + build
 | אין כפתור Google | `VITE_GOOGLE_CLIENT_ID` ריק או לא בפורמט `<id>.apps.googleusercontent.com`. במקרה כזה מודפסת אזהרה בקונסול |
 | Google מחזיר 403 / "origin not allowed" | ה־Client ID שגוי, או שכתובת האתר לא רשומה כ־Authorized JavaScript origin ב־Google Cloud Console |
 | העלאה נכשלת עם 503 | Cloudinary לא מוגדר בשרת |
+| "העלאת התמונה נכשלה" רק במחשב המקומי | ברשת עם סינון HTTPS (למשל NetFree) השרת המקומי לא מגיע ל־Cloudinary. להפעיל את השרת עם `NODE_OPTIONS=--use-system-ca` (ראו README של השרת) |
+| "השרת לא הגיב בזמן" בהעלאה | ההעלאה נמשכה יותר מ־5 דקות (חיבור איטי או שרת שמתעורר בענן). לרענן את העמוד – ייתכן שהתמונות כבר נשמרו |
 | 404 ברענון עמוד פנימי (בענן) | חסר ה־rewrite ל־`index.html` – ראו `render.yaml` |
