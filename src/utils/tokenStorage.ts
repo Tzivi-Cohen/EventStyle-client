@@ -1,5 +1,5 @@
 // שמירת ה-JWT של EventStyle בלבד (לא ה-ID Token של Google).
-// localStorage – כי השרת עובד עם Bearer Token בלי Cookies (ראו הסבר בסיכום השלב).
+// localStorage – כי השרת עובד עם Bearer Token בלי Cookies.
 const TOKEN_KEY = 'eventstyle_token'
 
 export const tokenStorage = {

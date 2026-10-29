@@ -1,76 +1,102 @@
-import { GoogleLogin, GoogleOAuthProvider, type CredentialResponse } from '@react-oauth/google'
-import { useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { ErrorMessage } from '../components/ErrorMessage'
+import { useForm } from 'react-hook-form'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { GoogleSignIn } from '../components/GoogleSignIn'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { Alert } from '../components/ui/Alert'
+import { Field } from '../components/ui/Field'
+import { fieldProps } from '../utils/fieldProps'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
+import type { GoogleAuthResult, LoginInput } from '../types/user'
+import { afterLoginPath, fromState } from '../utils/authRedirect'
+import { authClasses } from '../styles/authClasses'
 import { getErrorMessage } from '../utils/errorMessages'
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+import { validateEmail } from '../utils/validation'
 
 export function LoginPage() {
-  const { status, loginWithGoogle } = useAuth()
+  const { status, user, login, sessionExpired } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const toast = useToast()
+  const from = fromState(location.state)
 
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({ defaultValues: { email: '', password: '' } })
 
   if (status === 'loading') return <LoadingSpinner label="בודק התחברות..." />
-  if (status === 'authenticated' && !submitting) return <Navigate to={from} replace />
+  if (status === 'authenticated' && user && !isSubmitting) return <Navigate to={afterLoginPath(user, from)} replace />
 
-  async function handleSuccess({ credential }: CredentialResponse) {
-    if (!credential) {
-      setError('Google לא החזיר אישור התחברות. נסו שוב')
-      return
-    }
-    setSubmitting(true)
-    setError(null)
+  async function onSubmit(data: LoginInput) {
     try {
-      const { user, isNewUser } = await loginWithGoogle(credential)
-      // משתמש חדש מ-Google נוצר בלי טלפון – מציעים להשלים בפרופיל
-      if (isNewUser && !user.phone) navigate('/account', { replace: true, state: { welcome: true } })
-      else navigate(from, { replace: true })
+      const result = await login({ email: data.email.trim(), password: data.password })
+      toast.success(`שלום, ${result.user.fullName}`)
+      navigate(afterLoginPath(result.user, from), { replace: true })
     } catch (e) {
-      setError(getErrorMessage(e))
-      setSubmitting(false)
+      setError('root', { message: getErrorMessage(e) })
     }
   }
 
+  function onGoogleSignedIn({ user: signedIn, isNewUser }: GoogleAuthResult) {
+    toast.success(isNewUser ? `ברוכה הבאה, ${signedIn.fullName}!` : `שלום, ${signedIn.fullName}`)
+    navigate(afterLoginPath(signedIn, from), { replace: true })
+  }
+
   return (
-    <main className="page">
-      <section className="auth-card">
-        <h1>התחברות באמצעות Google</h1>
-        <p className="muted">
-          ההתחברות וההרשמה מתבצעות עם חשבון Google. בכניסה הראשונה ייפתח עבורך חשבון לקוח.
+    <main className={authClasses.page}>
+      <section className={authClasses.card} aria-labelledby="login-title">
+        <header className={authClasses.header}>
+          <p className={authClasses.eyebrow}>EventStyle</p>
+          <h1 id="login-title" className={authClasses.title}>התחברות</h1>
+          <p className={authClasses.lead}>ברוכים השבים! בחרו איך להתחבר</p>
+        </header>
+
+        {sessionExpired && <Alert kind="warning">פג תוקף ההתחברות. יש להתחבר מחדש.</Alert>}
+
+        <div className={authClasses.option} role="group" aria-label="התחברות באמצעות Google">
+          <GoogleSignIn mode="signin" onSignedIn={onGoogleSignedIn} />
+        </div>
+
+        <p className={authClasses.divider}>
+          <span>או עם אימייל וסיסמה</span>
         </p>
 
-        {!GOOGLE_CLIENT_ID ? (
-          <ErrorMessage message="התחברות עם Google לא הוגדרה באפליקציה (חסר VITE_GOOGLE_CLIENT_ID)" />
-        ) : (
-          <GoogleOAuthProvider
-            clientId={GOOGLE_CLIENT_ID}
-            locale="he"
-            onScriptLoadError={() => setError('לא ניתן לטעון את רכיב ההתחברות של Google. בדקו את החיבור לאינטרנט')}
-          >
-            <div className="google-button" aria-busy={submitting}>
-              {submitting ? (
-                <LoadingSpinner label="מתחבר..." />
-              ) : (
-                <GoogleLogin
-                  onSuccess={handleSuccess}
-                  onError={() => setError('ההתחברות עם Google בוטלה או נכשלה. נסו שוב')}
-                  text="signin_with"
-                  shape="pill"
-                  width={280}
-                />
-              )}
-            </div>
-          </GoogleOAuthProvider>
-        )}
+        <form className={`form ${authClasses.option}`} onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Field id="login-email" label="אימייל" error={errors.email?.message} required>
+            <input
+              {...fieldProps('login-email', errors.email?.message)}
+              type="email"
+              dir="ltr"
+              autoComplete="email"
+              {...register('email', { validate: validateEmail })}
+            />
+          </Field>
+          <Field id="login-password" label="סיסמה" error={errors.password?.message} required>
+            <input
+              {...fieldProps('login-password', errors.password?.message)}
+              type="password"
+              dir="ltr"
+              autoComplete="current-password"
+              {...register('password', { required: 'יש להזין סיסמה' })}
+            />
+          </Field>
+          {errors.root && <Alert kind="error">{errors.root.message}</Alert>}
+          <button className="btn btn-block" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'מתחבר...' : 'התחברות'}
+          </button>
+        </form>
 
-        <ErrorMessage message={error} />
+        <p className={authClasses.note}>נרשמת עם Google? התחברי עם כפתור Google – אין צורך בסיסמה.</p>
+
+        <footer className={authClasses.switch}>
+          אין לך חשבון?{' '}
+          <Link to="/register" className={authClasses.switchLink} state={from ? { from } : undefined}>
+            להרשמה
+          </Link>
+        </footer>
       </section>
     </main>
   )

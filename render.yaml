@@ -1,0 +1,40 @@
+# ============================================================
+# EventStyle – אתר ה-React ב-Render (Static Site, Blueprint)
+# הקובץ מניח שתיקיית EventStyle-Client היא שורש ה-Repository ב-GitHub.
+# אם היא בתת-תיקייה של Repository משותף, הוסיפי לשירות:  rootDir: EventStyle-Client
+# הוראות מלאות: DEPLOYMENT.md ב-Repository של השרת.
+# אין כאן סודות – כל משתני VITE_* גלויים לדפדפן.
+# ============================================================
+services:
+  - type: web
+    name: eventstyle-client
+    runtime: static
+    # tsc -b (בדיקת TypeScript) + vite build. משתני VITE_* נכנסים לקוד בזמן הבנייה
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: false # Deploy רק ביוזמתך
+    # ניתוב React (BrowserRouter): כל נתיב (למשל /my-events/5 אחרי רענון) מחזיר את index.html,
+    # ו-React Router מציג את העמוד הנכון. קבצים שקיימים ב-dist (JS, CSS, תמונות) מוגשים כרגיל.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # קובצי ה-Build מקבלים שם עם Hash – אפשר לשמור אותם בדפדפן לזמן ארוך
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_URL
+        sync: false # כתובת השרת כולל /api, למשל https://eventstyle-api.onrender.com/api
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false # אותו Client ID כמו בשרת (רשות)
+      # VITE_CONTACT_PHONE / VITE_CONTACT_EMAIL – רשות. אם לא מוגדרים מוצגים פרטי הסטודיו הציבוריים

@@ -1,100 +1,115 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation } from 'react-router-dom'
 import { fieldErrors } from '../api/apiClient'
-import { ErrorMessage } from '../components/ErrorMessage'
+import { Alert } from '../components/ui/Alert'
+import { Badge } from '../components/ui/Badges'
+import { Field } from '../components/ui/Field'
+import { fieldProps } from '../utils/fieldProps'
+import { PageHeader } from '../components/ui/PageHeader'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
+import type { ProfileUpdate } from '../types/user'
 import { getErrorMessage } from '../utils/errorMessages'
+import { formatDate, ROLE_LABELS } from '../utils/format'
+import { ADDRESS_MAX_LENGTH, validateFullName, validatePhone } from '../utils/validation'
 
-// אותו כלל כמו ב-phoneSchema של השרת
-const PHONE_PATTERN = /^\+?[0-9][0-9\s-]{6,18}$/
-
-type PhoneForm = { phone: string }
-
-const ROLE_LABELS = { Admin: 'מנהלת', Client: 'לקוח' } as const
+type ProfileForm = { fullName: string; phone: string; address: string }
 
 export function AccountPage() {
   const { user, updateProfile } = useAuth()
   const location = useLocation()
+  const toast = useToast()
   const welcome = (location.state as { welcome?: boolean } | null)?.welcome === true
 
-  const [formError, setFormError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
-  } = useForm<PhoneForm>({ defaultValues: { phone: '' } })
+    reset,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ProfileForm>({
+    values: { fullName: user?.fullName ?? '', phone: user?.phone ?? '', address: user?.address ?? '' },
+  })
 
-  // ProtectedRoute מבטיח משתמש מחובר
+  // ProtectedRoute מבטיח משתמשת מחוברת
   if (!user) return null
 
-  async function onSubmit({ phone }: PhoneForm) {
-    setFormError(null)
+  async function onSubmit(form: ProfileForm) {
+    // שולחים רק שדות שהשתנו. טלפון ריק לא נשלח (השרת לא מאפשר למחוק טלפון)
+    const update: ProfileUpdate = {}
+    if (form.fullName.trim() !== user!.fullName) update.fullName = form.fullName.trim()
+    if (form.phone.trim() && form.phone.trim() !== (user!.phone ?? '')) update.phone = form.phone.trim()
+    const address = form.address.trim()
+    if (address !== (user!.address ?? '')) update.address = address || null
+    if (Object.keys(update).length === 0) {
+      toast.show('אין שינויים לשמירה')
+      return
+    }
     try {
-      await updateProfile({ phone: phone.trim() })
-      setSaved(true)
+      const updated = await updateProfile(update)
+      reset({ fullName: updated.fullName, phone: updated.phone ?? '', address: updated.address ?? '' })
+      toast.success('הפרטים נשמרו')
     } catch (e) {
       const fields = fieldErrors(e)
-      if (fields.phone) setError('phone', { message: 'מספר הטלפון אינו תקין' })
-      else setFormError(getErrorMessage(e))
+      const known = (['fullName', 'phone', 'address'] as const).filter((name) => fields[name])
+      known.forEach((name) => setError(name, { message: 'הערך אינו תקין' }))
+      if (known.length === 0) setError('root', { message: getErrorMessage(e) })
     }
   }
 
   return (
-    <main className="page">
-      <section className="auth-card">
-        <h1>{welcome ? `ברוכים הבאים, ${user.fullName}!` : 'החשבון שלי'}</h1>
+    <main className="page container narrow">
+      <PageHeader eyebrow="החשבון שלי" title={welcome ? `ברוכה הבאה, ${user.fullName}!` : 'הפרטים שלי'} />
 
+      {welcome && !user.phone && <Alert kind="info">כדי שנוכל ליצור איתך קשר לגבי האירוע, הוסיפי מספר טלפון.</Alert>}
+
+      <div className="card card-padded">
         <dl className="details">
-          <dt>שם</dt>
-          <dd>{user.fullName}</dd>
           <dt>אימייל</dt>
           <dd dir="ltr">{user.email}</dd>
-          <dt>טלפון</dt>
-          <dd dir="ltr">{user.phone ?? '—'}</dd>
           <dt>סוג חשבון</dt>
           <dd>{ROLE_LABELS[user.role]}</dd>
+          <dt>חשבון נפתח</dt>
+          <dd>{formatDate(user.createdAt)}</dd>
         </dl>
-        {user.googleLinked && <span className="tag">מחובר עם Google</span>}
+        {user.googleLinked && <Badge tone="gold">מחובר עם Google</Badge>}
 
-        {!user.emailVerified && (
-          <p className="status warning" role="status">
-            כתובת האימייל של החשבון עדיין לא מאומתת. עד לאימות, אירועים שנרשמו על כתובת זו לא יקושרו לחשבון.
-            לבירור יש לפנות לסטודיו.
-          </p>
-        )}
-
-        {user.phone === null && !saved && (
-          <form className="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-            <h2>השלמת פרופיל</h2>
-            <p className="muted">כדי שנוכל ליצור איתך קשר לגבי האירוע, הוסיפו מספר טלפון.</p>
-            <label htmlFor="phone">טלפון</label>
+        <form className="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <h2>עריכת פרטים</h2>
+          <Field id="profile-name" label="שם מלא" error={errors.fullName?.message} required>
+            <input {...fieldProps('profile-name', errors.fullName?.message)} autoComplete="name" {...register('fullName', { validate: validateFullName })} />
+          </Field>
+          <Field id="profile-phone" label="טלפון" error={errors.phone?.message} required={user.phone !== null}>
             <input
-              id="phone"
+              {...fieldProps('profile-phone', errors.phone?.message)}
               type="tel"
               dir="ltr"
               autoComplete="tel"
-              aria-invalid={errors.phone ? 'true' : 'false'}
               {...register('phone', {
-                required: 'יש להזין מספר טלפון',
-                validate: (v) => PHONE_PATTERN.test(v.trim()) || 'מספר טלפון לא תקין (7–19 ספרות, אפשר + בהתחלה)',
+                validate: (v) => (!v.trim() ? (user.phone === null ? true : 'יש להזין מספר טלפון') : validatePhone(v)),
               })}
             />
-            {errors.phone && (
-              <p className="field-error" role="alert">
-                {errors.phone.message}
-              </p>
-            )}
-            <button className="btn" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'שומר...' : 'שמירה'}
-            </button>
-            <ErrorMessage message={formError} />
-          </form>
-        )}
-        {saved && <p className="status ok">הטלפון נשמר</p>}
-      </section>
+          </Field>
+          <Field
+            id="profile-address"
+            label="כתובת (רשות)"
+            error={errors.address?.message}
+            hint={`עד ${ADDRESS_MAX_LENGTH} תווים. השארת השדה ריק מוחקת את הכתובת`}
+          >
+            <input
+              {...fieldProps('profile-address', errors.address?.message, true)}
+              autoComplete="street-address"
+              maxLength={ADDRESS_MAX_LENGTH}
+              {...register('address', { maxLength: { value: ADDRESS_MAX_LENGTH, message: `עד ${ADDRESS_MAX_LENGTH} תווים` } })}
+            />
+          </Field>
+          {errors.root && <Alert kind="error">{errors.root.message}</Alert>}
+          <button className="btn" type="submit" disabled={isSubmitting || !isDirty}>
+            {isSubmitting ? 'שומר...' : 'שמירת שינויים'}
+          </button>
+        </form>
+        <p className="muted small">שינוי אימייל או סיסמה אינו אפשרי דרך האתר.</p>
+      </div>
     </main>
   )
 }

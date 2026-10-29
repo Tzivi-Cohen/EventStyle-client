@@ -1,87 +1,88 @@
-import type { ApiErrorBody } from '../types/api'
+import axios, { AxiosError, type AxiosProgressEvent } from 'axios'
+import { env } from '../config/env'
+import type { ApiErrorBody } from '../types/common'
 import { tokenStorage } from '../utils/tokenStorage'
+import { ApiError } from './apiError'
 
-const API_URL = import.meta.env.VITE_API_URL
+export { ApiError, fieldErrors } from './apiError'
 
-/** שגיאה אחידה לכל הבקשות. status=0 פירושו שאין חיבור לשרת */
-export class ApiError extends Error {
-  readonly status: number
-  readonly code: string
-  readonly details?: unknown
+export const http = axios.create({
+  baseURL: env.apiUrl,
+  headers: { Accept: 'application/json' },
+  timeout: 60_000,
+})
 
-  constructor(status: number, code: string, message: string, details?: unknown) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.code = code
-    this.details = details
-  }
-}
+http.interceptors.request.use((config) => {
+  const token = tokenStorage.get()
+  if (token) config.headers.set('Authorization', `Bearer ${token}`)
+  return config
+})
 
 let onUnauthorized: (() => void) | null = null
 
-/** פעולה שתרוץ כשה-Token השמור כבר לא תקף (401 UNAUTHORIZED) */
 export function setUnauthorizedHandler(handler: (() => void) | null) {
   onUnauthorized = handler
 }
 
-type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-
-async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
-  const token = tokenStorage.get()
-  if (token) headers.Authorization = `Bearer ${token}`
-
-  // ב-FormData הדפדפן מגדיר Content-Type (כולל boundary) בעצמו
-  const isFormData = body instanceof FormData
-  if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
-
-  let response: Response
-  try {
-    response = await fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
-    })
-  } catch {
-    throw new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server')
-  }
-
-  if (response.status === 204) return undefined as T
-
-  const data: unknown = await response.json().catch(() => null)
-
-  if (!response.ok) {
-    const err = (data as ApiErrorBody | null)?.error
-    const apiError = new ApiError(
-      response.status,
-      err?.code ?? 'INTERNAL_ERROR',
-      err?.message ?? `HTTP ${response.status}`,
-      err?.details,
-    )
-    // רק UNAUTHORIZED מסמן Token לא תקף. GOOGLE_AUTH_FAILED (גם 401) הוא כישלון התחברות, לא ניתוק
-    if (response.status === 401 && apiError.code === 'UNAUTHORIZED' && token) {
+http.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    const apiError = toApiError(error)
+    const sentToken = Boolean((error as AxiosError).config?.headers?.Authorization)
+    // רק UNAUTHORIZED מסמן Token לא תקף. INVALID_CREDENTIALS / GOOGLE_AUTH_FAILED (גם 401) הם כישלון התחברות, לא ניתוק
+    if (apiError.status === 401 && apiError.code === 'UNAUTHORIZED' && sentToken) {
       tokenStorage.clear()
       onUnauthorized?.()
     }
-    throw apiError
-  }
+    return Promise.reject(apiError)
+  },
+)
 
-  return data as T
+function toApiError(error: unknown): ApiError {
+  if (error instanceof ApiError) return error
+  if (axios.isCancel(error)) return new ApiError(0, 'CANCELLED', 'Request was cancelled')
+  if (error instanceof AxiosError) {
+    if (!error.response) return new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server')
+    const body = error.response.data as Partial<ApiErrorBody> | undefined
+    return new ApiError(
+      error.response.status,
+      body?.error?.code ?? 'INTERNAL_ERROR',
+      body?.error?.message ?? `HTTP ${error.response.status}`,
+      body?.error?.details,
+    )
+  }
+  return new ApiError(0, 'UNKNOWN_ERROR', 'Unexpected error')
+}
+
+/** פרמטרים ל-Query String: מדלגים על ערכים ריקים (השרת מחזיר 400 על פרמטר ריק) */
+export function cleanParams(params: object): Record<string, string | number | boolean> {
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ''),
+  )
+}
+
+export type UploadOptions = {
+  onProgress?: (percent: number) => void
+  signal?: AbortSignal
 }
 
 export const apiClient = {
-  get: <T>(path: string) => request<T>('GET', path),
-  post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
-  put: <T>(path: string, body?: unknown) => request<T>('PUT', path, body),
-  patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
-  delete: <T = void>(path: string) => request<T>('DELETE', path),
-}
-
-/** { שם שדה: הודעה } מתוך details של VALIDATION_ERROR */
-export function fieldErrors(error: unknown): Record<string, string> {
-  if (!(error instanceof ApiError) || !Array.isArray(error.details)) return {}
-  return Object.fromEntries(
-    (error.details as { field: string; message: string }[]).map((d) => [d.field || '_form', d.message]),
-  )
+  get: async <T>(path: string, params?: object) =>
+    (await http.get<T>(path, { params: params ? cleanParams(params) : undefined })).data,
+  post: async <T>(path: string, body?: unknown) => (await http.post<T>(path, body)).data,
+  put: async <T>(path: string, body?: unknown) => (await http.put<T>(path, body)).data,
+  patch: async <T>(path: string, body?: unknown) => (await http.patch<T>(path, body)).data,
+  delete: async (path: string) => {
+    await http.delete(path)
+  },
+  /** multipart/form-data – לא מגדירים Content-Type: הדפדפן מוסיף אותו עם ה-boundary */
+  upload: async <T>(path: string, form: FormData, options: UploadOptions = {}) =>
+    (
+      await http.post<T>(path, form, {
+        signal: options.signal,
+        onUploadProgress: (event: AxiosProgressEvent) => {
+          if (options.onProgress && event.total) options.onProgress(Math.round((event.loaded / event.total) * 100))
+        },
+      })
+    ).data,
 }

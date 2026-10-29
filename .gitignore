@@ -9,15 +9,19 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-e2e
 dist-ssr
+test-results
+playwright-report
 build
 coverage
 *.local
 
-# קובצי סביבה – לא עולים ל-Git (רק .env.example)
+# קובצי סביבה – לא עולים ל-Git (רק קובצי הדוגמה)
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # מפתחות, גיבויים וקבצים זמניים
 *.pem
