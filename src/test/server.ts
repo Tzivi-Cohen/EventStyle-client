@@ -1,8 +1,3 @@
-/**
- * Mock API (MSW) – מדמה את השרת לפי ה-Swagger: אותם נתיבים, Methods, מבני בקשה, תשובה ושגיאות.
- * מצב בזיכרון שמתאפס לפני כל בדיקה, כך שפעולות שינוי (העלאה, הסכמה, פרסום, מחיקה) מתנהגות כמו בשרת.
- * אין כאן פנייה לשרת, למסד הנתונים או ל-Cloudinary האמיתיים.
- */
 import { http, HttpResponse, type JsonBodyType } from 'msw'
 import { setupServer } from 'msw/node'
 import type { EventItem, EventRequestInput } from '../types/event'
@@ -18,7 +13,6 @@ type Db = {
   users: Record<string, User>
   photos: AdminEventPhoto[]
   events: EventItem[]
-  /** כל הבקשות שהגיעו – לבדיקת מבנה הבקשה */
   requests: { method: string; path: string; search: string; body?: unknown; auth: string | null }[]
   nextPhotoId: number
 }
@@ -42,7 +36,6 @@ function currentUser(request: Request): User | null {
   return db.users[header.slice(7)] ?? null
 }
 
-/** 401 בלי Token / Token לא מוכר, 403 לתפקיד אחר – כמו authenticate + requireRole בשרת */
 function guard(request: Request, role?: 'Admin'): User | Response {
   const user = currentUser(request)
   if (!user) return error(401, 'UNAUTHORIZED', 'Invalid or expired token')
@@ -50,7 +43,6 @@ function guard(request: Request, role?: 'Admin'): User | Response {
   return user
 }
 
-/** חיפוש, סינון ומיון כמו בשרת (GET /events, GET /events/my) */
 function filterEvents(list: EventItem[], url: URL, searchClient: boolean) {
   const q = Object.fromEntries(url.searchParams)
   const search = q.search?.toLowerCase()
@@ -79,7 +71,6 @@ function page<T>(items: T[], url: URL) {
   }
 }
 
-/** כמו toPhotoDto בשרת: ללקוחה בלי שדות אחסון */
 export function photoFor(photo: AdminEventPhoto, user: User): EventPhoto | AdminEventPhoto {
   if (user.role === 'Admin') return { ...photo, uploadedByMe: photo.uploadedById === user.id, canDelete: true }
   const { publicId: _a, storageType: _b, uploadedById, galleryItemId: _d, ...rest } = photo
@@ -109,7 +100,6 @@ export const handlers = [
     return undefined
   }),
 
-  // ---------- Auth ----------
   http.post(`${API}/auth/login`, async ({ request }) => {
     const { email, password } = (await request.json()) as { email: string; password: string }
     const entry = Object.entries(db.users).find(([, u]) => u.email === email)
@@ -123,7 +113,6 @@ export const handlers = [
     db.users['new-token'] = user
     return HttpResponse.json({ message: 'Registration successful', token: 'new-token', user }, { status: 201 })
   }),
-  // Google: ה-credential המדומה קובע את התרחיש (כמו בשרת – לפי FRONTEND-API-GUIDE פרק 2.6)
   http.post(`${API}/auth/google`, async ({ request }) => {
     const { idToken } = (await request.json()) as { idToken: string }
     if (idToken === 'google-existing') {
@@ -151,7 +140,6 @@ export const handlers = [
     return HttpResponse.json({ user })
   }),
 
-  // ---------- Packages ----------
   http.get(`${API}/packages`, ({ request }) => {
     const type = new URL(request.url).searchParams.get('eventType')
     const active = packages.filter((p) => p.isActive && (!type || p.eventType === type || p.eventType === null))
@@ -168,7 +156,6 @@ export const handlers = [
     return HttpResponse.json({ ...packages[0], ...body, id: 99, eventCount: 0 }, { status: 201 })
   }),
 
-  // ---------- Gallery ----------
   http.get(`${API}/gallery`, ({ request }) => {
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
@@ -198,7 +185,6 @@ export const handlers = [
     return HttpResponse.json({ ...item, ...((await request.json()) as object) })
   }),
 
-  // ---------- Events ----------
   http.get(`${API}/events/my`, ({ request }) => {
     const user = guard(request)
     if (user instanceof Response) return user
@@ -216,7 +202,6 @@ export const handlers = [
     const list = filterEvents(db.events, url, true).map((e) => ({ ...e, photoCount: db.photos.filter((p) => p.eventId === e.id).length }))
     return HttpResponse.json(page(list, url))
   }),
-  // בקשות לקוחות – כמו בשרת: Allowlist, Pending בלבד לעריכה, אישור / דחייה פעם אחת
   http.post(`${API}/events/requests`, async ({ request }) => {
     const user = guard(request)
     if (user instanceof Response) return user
@@ -308,7 +293,6 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  // ---------- Event photos ----------
   http.get(`${API}/events/:id/photos`, ({ request, params }) => {
     const access = eventAccess(request, Number(params.id))
     if (access instanceof Response) return access
@@ -319,7 +303,6 @@ export const handlers = [
     if (access instanceof Response) return access
     const photo = db.photos.find((p) => p.id === Number(params.photoId) && p.eventId === access.event.id)
     if (!photo) return error(404, 'NOT_FOUND', 'Photo not found for this event')
-    // קישור זמני חדש בכל בקשה
     photo.url = `https://api.cloudinary.test/download?public_id=p${photo.id}&signature=fresh${Date.now()}`
     photo.urlExpiresAt = new Date(Date.now() + 10 * 60_000).toISOString()
     return HttpResponse.json(photoFor(photo, access.user))

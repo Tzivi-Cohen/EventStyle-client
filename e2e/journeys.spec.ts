@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { installMockApi } from './mockApi'
 
-/** תהליכים מלאים כמו של משתמשת אמיתית – בדפדפן אמיתי, מול Mock API בלבד */
-
 test('guest: home → price list per event type → gallery with enlarged view', async ({ page }) => {
   await installMockApi(page)
   await page.goto('/')
@@ -23,12 +21,12 @@ test('guest: home → price list per event type → gallery with enlarged view',
 test('client: login → my event → upload a private photo → give consent → logout', async ({ page }) => {
   const api = await installMockApi(page)
   await page.goto('/my-events/10')
-  await expect(page).toHaveURL(/\/login$/) // נתיב מוגן
+  await expect(page).toHaveURL(/\/login$/)
 
   await page.getByLabel('אימייל').fill('noa@test.com')
   await page.getByLabel('סיסמה').fill('Password1')
   await page.getByRole('button', { name: 'התחברות' }).click()
-  await expect(page).toHaveURL(/\/my-events\/10$/) // חזרה לדף שביקשה
+  await expect(page).toHaveURL(/\/my-events\/10$/)
   await expect(page.getByRole('heading', { name: 'יום הולדת 30 לנועה' })).toBeVisible()
 
   await page.getByLabel('בחירת תמונות').setInputFiles({ name: 'table.png', mimeType: 'image/png', buffer: Buffer.alloc(800) })
@@ -41,7 +39,6 @@ test('client: login → my event → upload a private photo → give consent →
   await expect(page.getByText('ההסכמה לפרסום נשמרה. הפרסום עצמו נעשה בידי הסטודיו')).toBeVisible()
   expect(api.requests.find((r) => r.method === 'PUT')?.body).toEqual({ publishConsent: true })
 
-  // רענון הדף שומר את ההתחברות
   await page.reload()
   await expect(page.getByRole('heading', { name: 'יום הולדת 30 לנועה' })).toBeVisible()
 
@@ -106,11 +103,9 @@ test('admin: login → photos waiting for publication → publish to the gallery
   await page.getByRole('button', { name: 'התחברות' }).click()
   await expect(page).toHaveURL(/\/admin$/)
 
-  // אין עדיין הסכמה – אין מה לפרסם
   await page.getByRole('navigation', { name: 'ניווט ממשק הניהול' }).getByRole('link', { name: 'תמונות לפרסום' }).click()
   await expect(page.getByText('אין תמונות שממתינות לפרסום')).toBeVisible()
 
-  // הלקוחה נתנה הסכמה (במצב ה-Mock), והמנהלת מפרסמת
   api.photos[0].publishConsent = true
   await page.reload()
   await page.getByRole('button', { name: 'פרסום בגלריה' }).click()

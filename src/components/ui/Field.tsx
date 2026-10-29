@@ -1,9 +1,6 @@
 import type { ReactNode } from 'react'
 
-/**
- * שדה טופס: תווית מקושרת, רמז, והודעת שגיאה ליד השדה.
- * השדה עצמו מקבל aria-invalid ו-aria-describedby מבחוץ (בעזרת fieldProps).
- */
+
 export function Field({
   id,
   label,

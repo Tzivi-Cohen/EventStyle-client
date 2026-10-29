@@ -1,15 +1,10 @@
 import type { EventStatus, EventType } from '../types/common'
 import type { EventFilters, EventSortField } from '../types/event'
 
-/**
- * מסנני רשימת האירועים – של המנהלת ושל הלקוחה (useReducer): כל שינוי בחיפוש, סינון או מיון מחזיר לעמוד 1,
- * כדי שלא יוצג עמוד שכבר לא קיים בתוצאות החדשות.
- */
 export type EventFiltersState = Required<Pick<EventFilters, 'page' | 'limit' | 'sortBy' | 'sortDir'>> & {
   search: string
   eventType: EventType | ''
   status: EventStatus | ''
-  /** טווח תקציב – כפי שהוקלד בשדה (מחרוזת ריקה = בלי גבול) */
   minBudget: string
   maxBudget: string
 }
@@ -57,26 +52,22 @@ export function eventFiltersReducer(state: EventFiltersState, action: EventFilte
   }
 }
 
-/** ערך תקציב תקין מהשדה: מספר לא שלילי, אחרת undefined (לא נשלח לשרת) */
 function budgetValue(value: string): number | undefined {
   if (!value.trim()) return undefined
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 ? number : undefined
 }
 
-/** טווח התקציב הפוך (מינימום גדול מהמקסימום) – מוצגת הודעה, והטווח לא נשלח */
 export function isBudgetRangeInvalid(state: EventFiltersState): boolean {
   const min = budgetValue(state.minBudget)
   const max = budgetValue(state.maxBudget)
   return min !== undefined && max !== undefined && min > max
 }
 
-/** האם יש חיפוש או סינון פעילים – כדי להבדיל בין "אין תוצאות" ל"אין עדיין אירועים" */
 export function hasActiveFilters(state: EventFiltersState): boolean {
   return Boolean(state.search.trim() || state.eventType || state.status || state.minBudget.trim() || state.maxBudget.trim())
 }
 
-/** המרה לפרמטרים לשרת: ערכים ריקים לא נשלחים (השרת מחזיר 400 על פרמטר ריק) */
 export function toEventQuery(state: EventFiltersState, search = state.search): EventFilters {
   return {
     page: state.page,

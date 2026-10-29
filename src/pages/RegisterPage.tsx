@@ -52,7 +52,6 @@ export function RegisterPage() {
   }
 
   function onGoogleSignedIn({ user: signedIn, isNewUser }: GoogleAuthResult) {
-    // חשבון שכבר היה מקושר ל-Google – זו פשוט התחברות, לא נוצר חשבון כפול
     toast.success(isNewUser ? `ברוכה הבאה, ${signedIn.fullName}!` : `כבר יש לך חשבון – התחברת בהצלחה, ${signedIn.fullName}`)
     navigate(afterLoginPath(signedIn, from), { replace: true })
   }

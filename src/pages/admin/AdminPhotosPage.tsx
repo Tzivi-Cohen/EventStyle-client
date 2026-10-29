@@ -18,10 +18,6 @@ const VIEWS: { key: string; label: string; filters: AdminPhotoFilters }[] = [
   { key: 'all', label: 'כל התמונות', filters: {} },
 ]
 
-/**
- * תמונות אירועים למנהלת (GET /admin/event-photos). ברירת המחדל: תמונות שקיבלו הסכמה וממתינות לפרסום.
- * המנהלת מפרסמת – אבל לא יכולה לתת הסכמה בשם הלקוחה (השרת חוסם).
- */
 export function AdminPhotosPage() {
   const [view, setView] = useState(VIEWS[0])
   const [page, setPage] = useState(1)

@@ -4,7 +4,6 @@ const linkBase = 'rounded-field px-[0.85rem] py-[0.6rem] no-underline'
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   isActive ? `${linkBase} active bg-navy font-semibold text-white` : `${linkBase} text-ink hover:bg-ivory`
 
-/** תת-ניווט של ממשק הניהול (הנתיבים עצמם מוגנים ב-ProtectedRoute roles=['Admin']) */
 export function AdminLayout() {
   return (
     <div className="container grid grid-cols-[220px_1fr] gap-8 pt-10 pb-4 [@media(max-width:900px)]:grid-cols-[1fr] [@media(max-width:900px)]:gap-5">

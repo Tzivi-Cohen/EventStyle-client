@@ -9,20 +9,14 @@ import { AuthProvider } from '../context/AuthContext'
 import { tokenStorage } from '../utils/tokenStorage'
 import { TOKENS } from './server'
 
-/** מציג את הנתיב הנוכחי – כדי לבדוק ניווט */
 function LocationProbe() {
   const location = useLocation()
   return <div data-testid="location">{location.pathname + location.search}</div>
 }
 
-/**
- * מרנדר את האפליקציה המלאה (כל ה-Providers והנתיבים) בנתיב נתון.
- * as: מי מחובר – Token שמור ב-localStorage ונטען כמו ברענון דף אמיתי (GET /auth/me).
- */
 export function renderApp(path = '/', { as }: { as?: keyof typeof TOKENS } = {}) {
   if (as) tokenStorage.set(TOKENS[as])
   const queryClient = createQueryClient()
-  // בבדיקות: בלי ניסיונות חוזרים, כדי ששגיאה תוצג מיד
   queryClient.setDefaultOptions({ queries: { retry: false, staleTime: 0 }, mutations: { retry: false } })
   const user = userEvent.setup()
   const utils = render(

@@ -21,7 +21,6 @@ export const eventsApi = {
 export const photosApi = {
   list: (eventId: number) => apiClient.get<EventPhoto[]>(`/events/${eventId}/photos`),
   get: (eventId: number, photoId: number) => apiClient.get<EventPhoto>(`/events/${eventId}/photos/${photoId}`),
-  /** multipart: 1–10 קבצים, כולם בשדה photos */
   upload: (eventId: number, files: File[], options?: UploadOptions) => {
     const form = new FormData()
     files.forEach((file) => form.append('photos', file))

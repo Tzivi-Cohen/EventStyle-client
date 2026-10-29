@@ -1,5 +1,3 @@
-// נתוני בדיקה במבנה המדויק שהשרת מחזיר (src/utils/mappers.ts בשרת + docs/openapi.json).
-// אלה נתונים מדומים לבדיקות בלבד – הם לא מוצגים באפליקציה עצמה.
 import type { EventItem } from '../types/event'
 import type { AdminGalleryItem, GalleryItem } from '../types/gallery'
 import type { AdminPackage } from '../types/package'
@@ -113,7 +111,6 @@ export const galleryItems: AdminGalleryItem[] = [
   },
 ]
 
-/** תשובת הגלריה הציבורית – בלי isPublished / sourceEventPhotoId */
 export function toPublicGallery({ isPublished: _p, sourceEventPhotoId: _s, updatedAt: _u, ...item }: AdminGalleryItem): GalleryItem {
   return item
 }
@@ -169,7 +166,6 @@ export const events: EventItem[] = [
   },
 ]
 
-/** בקשה של הלקוחה נועה (userId 2) – ממתינה לאישור כברירת מחדל */
 export function makeRequest(overrides: Partial<EventItem> = {}): EventItem {
   return {
     ...events[0],
@@ -195,7 +191,6 @@ export function makeRequest(overrides: Partial<EventItem> = {}): EventItem {
 
 const future = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString()
 
-/** תמונות אירוע במבנה של מנהלת. ללקוחה השרת מחזיר בלי publicId / storageType / uploadedById / galleryItemId */
 export function makePhotos(): AdminEventPhoto[] {
   return [
     {

@@ -16,7 +16,6 @@ import { MyEventDetailsPage } from './pages/client/MyEventDetailsPage'
 import { MyEventsPage } from './pages/client/MyEventsPage'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 
-// ממשק הניהול נטען רק כשמנהלת נכנסת אליו (Lazy Loading) – מבקרים ולקוחות לא מורידים את הקוד שלו
 const admin = () => import('./pages/admin')
 const AdminLayout = lazy(() => admin().then((m) => ({ default: m.AdminLayout })))
 const AdminHomePage = lazy(() => admin().then((m) => ({ default: m.AdminHomePage })))

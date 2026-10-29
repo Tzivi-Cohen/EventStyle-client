@@ -5,10 +5,6 @@ import { queryKeys } from '../api/queryClient'
 import type { AdminPhotoFilters, EventPhoto, PublishInput } from '../types/photo'
 import { nextRefreshDelay } from '../utils/photoLinks'
 
-/**
- * תמונות האירוע עם קישורי צפייה זמניים.
- * הרשימה מתרעננת אוטומטית דקה לפני שהקישור הראשון פג (refetchInterval) – כך הקישורים לא "נשברים" במסך פתוח.
- */
 export function useEventPhotos(eventId: number) {
   return useQuery({
     queryKey: queryKeys.eventPhotos(eventId),
@@ -18,10 +14,6 @@ export function useEventPhotos(eventId: number) {
   })
 }
 
-/**
- * רענון קישור של תמונה אחת (GET /events/:id/photos/:photoId) – כשתמונה נכשלת בטעינה או שהקישור פג.
- * כל קישור מתרענן לכל היותר פעם אחת, כדי שתמונה שבורה לא תיצור לולאת בקשות.
- */
 export function useRefreshPhotoLink(eventId: number) {
   const queryClient = useQueryClient()
   const attempted = useRef(new Set<string>())
@@ -41,7 +33,6 @@ export function useRefreshPhotoLink(eventId: number) {
   )
 }
 
-/** אחרי שינוי בתמונות: רשימת התמונות, פרטי האירוע (photoCount) והרשימה של המנהלת */
 function useInvalidatePhotos(eventId: number) {
   const queryClient = useQueryClient()
   return () =>
@@ -67,7 +58,6 @@ export function useDeletePhoto(eventId: number) {
   const invalidate = useInvalidatePhotos(eventId)
   return useMutation({
     mutationFn: (photoId: number) => photosApi.remove(eventId, photoId),
-    // מחיקת תמונה שפורסמה מסירה גם את העותק בגלריה
     onSuccess: () => Promise.all([invalidate(), queryClient.invalidateQueries({ queryKey: ['gallery'] })]),
     onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.eventPhotos(eventId) }),
   })
@@ -82,7 +72,6 @@ export function useSetConsent(eventId: number) {
       queryClient.setQueryData<EventPhoto[]>(queryKeys.eventPhotos(eventId), (list) =>
         list?.map((p) => (p.id === updated.id ? updated : p)),
       )
-      // ביטול הסכמה מסיר את העותק מהגלריה
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: ['gallery'] }),
         queryClient.invalidateQueries({ queryKey: ['photos'] }),

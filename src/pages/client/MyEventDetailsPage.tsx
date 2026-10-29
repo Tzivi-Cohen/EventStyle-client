@@ -46,7 +46,6 @@ export function MyEventDetailsPage() {
               <h2 className="section-title">{isRequestStatus(event.status) ? 'פרטי הבקשה' : 'פרטי האירוע'}</h2>
               <EventSummary event={event} />
             </section>
-            {/* העלאת תמונות רק אחרי אישור הבקשה – השרת אוכף זאת גם הוא */}
             {!isRequestStatus(event.status) && <EventPhotosPanel eventId={event.id} eventType={event.eventType} mode="owner" />}
           </>
         )}

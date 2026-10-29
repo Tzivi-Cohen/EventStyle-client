@@ -32,7 +32,6 @@ type RequestForm = {
 const textLength = (min: number, max: number, label = 'תווים') => (v: string) =>
   (v.trim().length >= min && v.trim().length <= max) || `${min}–${max} ${label}`
 
-/** היום בפורמט YYYY-MM-DD (שעון מקומי) – תאריך האירוע לא יכול להיות בעבר */
 function today() {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -47,7 +46,6 @@ function toForm(event?: EventItem): RequestForm {
     packageId: event ? String(event.packageId) : '',
     themeColor: event?.themeColor ?? '',
     guestCount: event?.guestCount ?? 50,
-    // בקשה חדשה: שדה ריק (לא 0) – הלקוחה ממלאת תקציב משלה
     budget: event?.budget ?? NaN,
     description: event?.description ?? '',
     clientNotes: event?.clientNotes ?? '',
@@ -69,10 +67,6 @@ function toInput(form: RequestForm): EventRequestInput {
   }
 }
 
-/**
- * בקשה לעיצוב אירוע: שליחה (POST /events/requests) ועריכה של בקשה ממתינה (PATCH /events/:id/request).
- * בקשה שאושרה או נדחתה – לקריאה בלבד. השרת אוכף את כל הכללים גם הוא.
- */
 export function EventRequestFormPage() {
   const params = useParams()
   const id = params.id ? Number(params.id) : null
@@ -124,14 +118,12 @@ function RequestFormBody({ event }: { event?: EventItem }) {
   const eventType = useWatch({ control, name: 'eventType' })
   const packagesQuery = usePackages(eventType)
   const packages = packagesQuery.data ?? []
-  // חבילה שהבקשה כבר משויכת אליה ועברה בינתיים לארכיון – מוצגת כדי שהערך הקיים לא ייעלם
   const keepCurrent = event?.package && event.eventType === eventType && !packages.some((p) => p.id === event.packageId)
 
   async function onSubmit(form: RequestForm) {
     const input = toInput(form)
     try {
       if (event) {
-        // בעריכה נשלחים רק השדות שהשתנו (PATCH) – כך תאריך קיים לא נבדק שוב מול "היום"
         const changed = Object.fromEntries(
           Object.entries(input).filter(([name]) => dirtyFields[name as keyof RequestForm]),
         ) as Partial<EventRequestInput>
@@ -188,7 +180,6 @@ function RequestFormBody({ event }: { event?: EventItem }) {
           min={event ? undefined : today()}
           {...register('eventDate', {
             required: 'יש לבחור תאריך',
-            // בעריכה: בדיקה רק אם התאריך שונה
             validate: (v) => v === event?.eventDate || v >= today() || 'התאריך לא יכול להיות בעבר',
           })}
         />

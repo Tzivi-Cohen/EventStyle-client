@@ -1,9 +1,5 @@
 import type { Page, Route } from '@playwright/test'
 
-/**
- * Mock API לבדיקות E2E – מבנה תשובות זהה לשרת (docs/openapi.json). מצב נפרד לכל בדיקה.
- * כל בקשה לכתובת שאינה האפליקציה המקומית או ה-API המדומה נחסמת.
- */
 export const E2E_API = 'http://api.e2e.test/api'
 
 const PNG_1PX = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64')
@@ -26,7 +22,6 @@ function createState() {
       },
     ],
     nextId: 200,
-    /** בקשות לעיצוב שהלקוחה שלחה בבדיקה (מזהים מ-50) */
     eventRequests: [] as Record<string, unknown>[],
   }
 }
@@ -63,7 +58,6 @@ function photoFor(photo: MockState['photos'][number], role: string, userId: numb
 export async function installMockApi(page_: Page): Promise<MockState> {
   const state = createState()
 
-  // כל דבר חיצוני (גופנים, תמונות אמיתיות, Google) – חסום. תמונות המדומות מוחזרות כ-PNG קטן
   await page_.route('**/*', (route) => {
     const url = new URL(route.request().url())
     if (url.hostname === 'localhost') return route.continue()
@@ -107,7 +101,6 @@ export async function installMockApi(page_: Page): Promise<MockState> {
       }))
     }
 
-    // מכאן – נתיבים מוגנים
     if (!user) return fail(route, 401, 'UNAUTHORIZED', 'Missing Bearer token')
     if (method === 'GET' && path === '/auth/me') return json(route, { user })
     if (method === 'GET' && path === '/events/my') {

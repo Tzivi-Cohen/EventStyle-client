@@ -20,7 +20,6 @@ export function Lightbox({
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      // RTL: חץ ימינה = הקודם, חץ שמאלה = הבא
       if (event.key === 'ArrowRight' && hasPrev) onIndexChange(index - 1)
       if (event.key === 'ArrowLeft' && hasNext) onIndexChange(index + 1)
     }

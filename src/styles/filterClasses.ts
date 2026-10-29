@@ -1,6 +1,5 @@
 const field = 'flex min-w-[160px] flex-col gap-1 text-[0.875rem] text-ink-soft'
 
-/** סרגלי חיפוש וסינון: שדות שמתרחבים בשורה ועוברים שורה במסך צר */
 export const filterClasses = {
   bar: 'card card-padded flex flex-wrap items-end gap-4 px-5 py-4',
   field: `${field} flex-[1_1_160px]`,

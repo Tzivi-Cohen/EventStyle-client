@@ -8,7 +8,7 @@ const location = () => screen.getByTestId('location').textContent
 
 describe('Admin: photos waiting for publication', () => {
   it('lists consented photos not yet in the gallery and publishes one as a separate copy', async () => {
-    db.photos[0].publishConsent = true // התמונה של הלקוחה קיבלה הסכמה
+    db.photos[0].publishConsent = true
     const { user } = renderApp('/admin/photos', { as: 'admin' })
     expect(await screen.findByRole('link', { name: 'יום הולדת 30 לנועה' })).toBeInTheDocument()
     expect(db.requests.find((r) => r.path === '/admin/event-photos')?.search).toBe('?publishConsent=true&inGallery=false&page=1&limit=12')
@@ -58,11 +58,11 @@ describe('Admin: event photos', () => {
     const cards = document.querySelectorAll<HTMLElement>('.photo-grid > li')
     expect(within(cards[0]).getByText('אין הסכמה')).toBeInTheDocument()
     expect(within(cards[0]).queryByRole('button', { name: 'פרסום בגלריה' })).not.toBeInTheDocument()
-    expect(within(cards[1]).getByText('בגלריה')).toBeInTheDocument() // כבר יש עותק – אין פרסום כפול
+    expect(within(cards[1]).getByText('בגלריה')).toBeInTheDocument()
     expect(within(cards[1]).queryByRole('button', { name: 'פרסום בגלריה' })).not.toBeInTheDocument()
     cards.forEach((card) => expect(within(card).getByRole('button', { name: 'מחיקה' })).toBeInTheDocument())
     expect(screen.queryByRole('checkbox', { name: 'מסכימה לפרסום בגלריה' })).not.toBeInTheDocument()
-    expect(screen.getByText('הערות פנימיות')).toBeInTheDocument() // notes – למנהלת בלבד
+    expect(screen.getByText('הערות פנימיות')).toBeInTheDocument()
   })
 })
 
@@ -106,7 +106,6 @@ describe('Admin: events management', () => {
     expect(screen.getByText('יש לבחור חבילה')).toBeInTheDocument()
     expect(db.requests.some((r) => r.method === 'POST' && r.path === '/events')).toBe(false)
 
-    // סוג Birthday: רק חבילת יום הולדת וחבילה כללית; בת מצווה בארכיון ומסוג אחר – לא מוצעת
     const packageSelect = screen.getByLabelText(/^חבילה/)
     const options = within(packageSelect).getAllByRole('option').map((o) => o.textContent)
     expect(options.some((o) => o?.includes('יום הולדת קלאסי'))).toBe(true)

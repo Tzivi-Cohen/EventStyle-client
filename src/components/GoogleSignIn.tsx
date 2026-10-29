@@ -10,12 +10,7 @@ import { LoadingSpinner } from './LoadingSpinner'
 const MIN_WIDTH = 200
 const MAX_WIDTH = 400
 
-/**
- * כפתור Google (Google Identity Services) – משמש גם להתחברות וגם להרשמה.
- * mode קובע רק את הטקסט: "כניסה באמצעות Google" / "הרשמה באמצעות Google". בשני המקרים נשלחת אותה בקשה:
- * ה-credential נשלח לשרת (POST /auth/google), והשרת יוצר חשבון חדש או מחבר חשבון קיים. נשמר רק ה-Token של המערכת.
- * חשבון מנהלת לא יכול להתחבר עם Google – השרת מחזיר 409 עם הודעה ברורה.
- */
+
 export function GoogleSignIn({
   mode,
   onSignedIn,
@@ -29,14 +24,12 @@ export function GoogleSignIn({
   const boxRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(320)
 
-  // הכפתור של Google מקבל רוחב קבוע – מתאימים אותו לרוחב הכרטיס (גם במסך טלפון צר)
   useLayoutEffect(() => {
     const measured = boxRef.current?.clientWidth
     if (measured) setWidth(Math.round(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, measured))))
   }, [])
 
   if (!env.googleClientId) {
-    // בפיתוח: הסבר למה הכפתור חסר. בסביבה ציבורית לא מציגים כפתור שבור או הודעה טכנית
     return env.mode === 'production' ? null : (
       <p className="m-0 rounded-field border border-dashed border-line-strong bg-ivory px-4 py-3 text-center text-[0.875rem] text-ink-soft" role="note">
         ההתחברות עם Google אינה זמינה: הערך <code dir="ltr">VITE_GOOGLE_CLIENT_ID</code> חסר או לא תקין בקובץ ה-env.

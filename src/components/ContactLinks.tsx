@@ -1,7 +1,6 @@
 import { env } from '../config/env'
 import { formatPhone } from '../utils/format'
 
-/** אייקונים בקו דק (SVG בתוך הקוד) – צבע לפי currentColor */
 function PhoneIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -34,10 +33,7 @@ const styles = {
   },
 }
 
-/**
- * פרטי הקשר של הסטודיו – מקור אחד לכל האתר (עמוד "איך מזמינים" והתחתית), כדי שלא יהיו פרטים סותרים.
- * cards – כרטיסים גדולים; inline – שורות קטנות לתחתית העמוד.
- */
+
 export function ContactLinks({ variant = 'cards' }: { variant?: 'cards' | 'inline' }) {
   const style = styles[variant]
   const phoneHref = `tel:${env.contactPhone.replace(/[^\d+]/g, '')}`

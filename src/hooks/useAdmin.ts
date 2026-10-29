@@ -9,7 +9,6 @@ export function useAdminPackages(filters: AdminPackageFilters) {
   return useQuery({ queryKey: queryKeys.adminPackages(filters), queryFn: () => packagesApi.adminList(filters) })
 }
 
-/** שינוי בחבילה מרענן גם את המחירון הציבורי (כל המפתחות מתחילים ב-'packages') */
 function useInvalidatePackages() {
   const queryClient = useQueryClient()
   return () => queryClient.invalidateQueries({ queryKey: ['packages'] })

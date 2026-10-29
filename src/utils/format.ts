@@ -8,7 +8,6 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   Private: 'אירוע פרטי',
 }
 
-/** תיאור קצר לכל סוג אירוע – טקסט שיווקי כללי, ללא פרטים שאינם קיימים */
 export const EVENT_TYPE_DESCRIPTIONS: Record<EventType, string> = {
   Birthday: 'עיצוב חגיגי ואישי לכל גיל',
   BatMitzvah: 'עיצוב מרגש ליום המיוחד',
@@ -27,18 +26,15 @@ export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
   Rejected: 'נדחתה',
 }
 
-/** מספר נייד ישראלי בן 10 ספרות לתצוגה: 0534134130 → 053-4134130. כל פורמט אחר מוצג כמו שהוא */
 export function formatPhone(phone: string): string {
   const digits = phone.trim()
   return /^05\d{8}$/.test(digits) ? `${digits.slice(0, 3)}-${digits.slice(3)}` : digits
 }
 
-/** בקשה שעדיין לא אושרה – Pending או Rejected */
 export const isRequestStatus = (status: EventStatus) => status === 'Pending' || status === 'Rejected'
 
 export const ROLE_LABELS = { Admin: 'מנהלת', Client: 'לקוחה' } as const
 
-/** "2026-12-15" → "15/12/2026" (בלי המרת אזור זמן) */
 export function formatDate(dateOnly: string): string {
   const [y, m, d] = dateOnly.slice(0, 10).split('-')
   return y && m && d ? `${d}/${m}/${y}` : dateOnly

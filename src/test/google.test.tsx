@@ -4,11 +4,6 @@ import { tokenStorage } from '../utils/tokenStorage'
 import { renderApp } from './render'
 import { db, TOKENS } from './server'
 
-/**
- * התחברות והרשמה עם Google – עם Mock:
- * הספרייה @react-oauth/google מוחלפת בכפתור מדומה שמחזיר credential לפי התרחיש, ו-POST /auth/google נענה ב-MSW.
- * אין פנייה ל-Google או לשרת אמיתי.
- */
 const google = vi.hoisted(() => ({ credential: 'google-new' as string | undefined, logout: vi.fn() }))
 
 vi.mock('@react-oauth/google', () => ({
@@ -149,7 +144,7 @@ describe('Google session: reload and logout', () => {
     await waitFor(() => expect(location()).toBe('/my-events'))
     first.unmount()
 
-    renderApp('/account') // "רענון": האפליקציה עולה מחדש עם ה-Token השמור בלבד
+    renderApp('/account')
     expect(await screen.findByRole('heading', { name: 'הפרטים שלי' })).toBeInTheDocument()
     expect(screen.getByText('מחובר עם Google')).toBeInTheDocument()
   })

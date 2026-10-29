@@ -11,10 +11,6 @@ import { Modal } from '../ui/Modal'
 
 type PublishForm = { title: string; category: EventType; isPublished: boolean; isFeatured: boolean; sortOrder: number }
 
-/**
- * פרסום תמונת אירוע בגלריה – מנהלת בלבד (POST /events/:id/photos/:photoId/publish).
- * השרת יוצר עותק ציבורי נפרד; קובץ המקור נשאר פרטי. מחייב הסכמה של בעלת האירוע.
- */
 export function PublishDialog({
   eventId,
   photoId,

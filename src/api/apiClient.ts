@@ -29,7 +29,6 @@ http.interceptors.response.use(
   (error: unknown) => {
     const apiError = toApiError(error)
     const sentToken = Boolean((error as AxiosError).config?.headers?.Authorization)
-    // רק UNAUTHORIZED מסמן Token לא תקף. INVALID_CREDENTIALS / GOOGLE_AUTH_FAILED (גם 401) הם כישלון התחברות, לא ניתוק
     if (apiError.status === 401 && apiError.code === 'UNAUTHORIZED' && sentToken) {
       tokenStorage.clear()
       onUnauthorized?.()
@@ -57,14 +56,12 @@ function toApiError(error: unknown): ApiError {
   return new ApiError(0, 'UNKNOWN_ERROR', 'Unexpected error')
 }
 
-/** פרמטרים ל-Query String: מדלגים על ערכים ריקים (השרת מחזיר 400 על פרמטר ריק) */
 export function cleanParams(params: object): Record<string, string | number | boolean> {
   return Object.fromEntries(
     Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== ''),
   )
 }
 
-/** העלאה כוללת עיבוד בשרת והעברה ל-Cloudinary (עד 10 קבצים של 5MB), ובענן גם זמן התעוררות של השרת */
 const UPLOAD_TIMEOUT_MS = 5 * 60_000
 
 export type UploadOptions = {
@@ -81,7 +78,6 @@ export const apiClient = {
   delete: async (path: string) => {
     await http.delete(path)
   },
-  /** multipart/form-data – לא מגדירים Content-Type: הדפדפן מוסיף אותו עם ה-boundary */
   upload: async <T>(path: string, form: FormData, options: UploadOptions = {}) =>
     (
       await http.post<T>(path, form, {

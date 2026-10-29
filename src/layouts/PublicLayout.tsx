@@ -14,7 +14,6 @@ export function PublicLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPath, setMenuPath] = useState(location.pathname)
 
-  // מעבר עמוד סוגר את התפריט בנייד
   if (menuPath !== location.pathname) {
     setMenuPath(location.pathname)
     setMenuOpen(false)

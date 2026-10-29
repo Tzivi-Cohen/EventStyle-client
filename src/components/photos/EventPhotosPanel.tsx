@@ -15,10 +15,6 @@ import { PublishDialog } from './PublishDialog'
 
 type Pending = { kind: 'delete' | 'revoke'; photo: EventPhoto } | null
 
-/**
- * תמונות האירוע הפרטיות – משותף ללקוחה (mode=owner) ולמנהלת (mode=admin).
- * הרשאות: השרת קובע מה מותר (canDelete, בעלות, תפקיד). כאן רק מציגים את הפעולות המתאימות.
- */
 export function EventPhotosPanel({ eventId, eventType, mode }: { eventId: number; eventType: EventType; mode: PhotoViewerMode }) {
   const toast = useToast()
   const query = useEventPhotos(eventId)
@@ -28,7 +24,6 @@ export function EventPhotosPanel({ eventId, eventType, mode }: { eventId: number
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [pending, setPending] = useState<Pending>(null)
   const [publishing, setPublishing] = useState<EventPhoto | null>(null)
-  // ערך זמני של המתג בזמן השליחה: משתנה מיד בלחיצה, ואם השרת נכשל – חוזר לערך מהשרת
   const [consentDraft, setConsentDraft] = useState<Record<number, boolean>>({})
   const photos = query.data ?? []
 

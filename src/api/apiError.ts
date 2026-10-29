@@ -1,4 +1,3 @@
-/** שגיאה אחידה לכל הבקשות. status=0 פירושו שאין חיבור לשרת */
 export class ApiError extends Error {
   readonly status: number
   readonly code: string

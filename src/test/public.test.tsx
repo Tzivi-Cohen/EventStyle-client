@@ -10,7 +10,7 @@ describe('Packages and price list per event type', () => {
     expect(await screen.findByRole('heading', { name: 'יום הולדת', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'חבילות כלליות', level: 2 })).toBeInTheDocument()
     expect(screen.getByText('יום הולדת קלאסי')).toBeInTheDocument()
-    expect(screen.queryByText('בת מצווה זהב')).not.toBeInTheDocument() // בארכיון
+    expect(screen.queryByText('בת מצווה זהב')).not.toBeInTheDocument()
     expect(screen.getAllByText(/1,500/).length).toBeGreaterThan(0)
   })
 
@@ -48,7 +48,7 @@ describe('Public gallery', () => {
   it('the gallery index shows one card per event type with published counts only', async () => {
     renderApp('/gallery')
     const birthday = await screen.findByRole('link', { name: /יום הולדת/ })
-    expect(within(birthday).getByText('1 תמונות')).toBeInTheDocument() // הפריט המוסתר לא נספר
+    expect(within(birthday).getByText('1 תמונות')).toBeInTheDocument()
     expect(screen.getAllByText('עדיין אין תמונות').length).toBeGreaterThan(0)
   })
 

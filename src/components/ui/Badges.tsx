@@ -32,7 +32,6 @@ export function Badge({ children, tone = 'neutral' }: { children: string; tone?:
   return <span className={`${badgeBase} ${toneColors[tone]}`}>{children}</span>
 }
 
-/** פס התקדמות של שלבי ההכנה לאירוע – רק לסטטוסים התפעוליים (בקשה מוצגת ב-RequestStatusPanel) */
 export function StatusProgress({ status }: { status: EventStatus }) {
   const current = (OPERATIONAL_EVENT_STATUSES as readonly EventStatus[]).indexOf(status)
   return (

@@ -14,7 +14,6 @@ export const galleryApi = {
   list: (filters: GalleryFilters = {}) => apiClient.get<Paginated<GalleryItem>>('/gallery', filters),
   summary: () => apiClient.get<GallerySummaryItem[]>('/gallery/summary'),
   adminList: (filters: AdminGalleryFilters = {}) => apiClient.get<Paginated<AdminGalleryItem>>('/admin/gallery', filters),
-  /** multipart: קובץ אחד בשדה image, ושדות טקסט (בוליאנים ומספרים נשלחים כמחרוזות) */
   upload: (image: File, data: GalleryUploadInput, options?: UploadOptions) => {
     const form = new FormData()
     form.append('image', image)

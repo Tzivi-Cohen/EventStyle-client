@@ -160,7 +160,6 @@ describe('env – Google Client ID', () => {
     expect(parseGoogleClientId('')).toBeNull()
     expect(parseGoogleClientId(undefined)).toBeNull()
     expect(warn).not.toHaveBeenCalled()
-    // טקסט שהודבק בטעות אחרי ה-ID – Google מחזיר 403, ולכן הכפתור לא מוצג
     expect(parseGoogleClientId('1234-abc.apps.googleusercontent.comAfter implementing, I will run')).toBeNull()
     expect(parseGoogleClientId('not-a-client-id')).toBeNull()
     expect(warn).toHaveBeenCalledTimes(2)

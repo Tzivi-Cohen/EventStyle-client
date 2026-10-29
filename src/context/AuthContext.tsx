@@ -17,10 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false)
   const [signedOut, setSignedOut] = useState(false)
 
-  /**
-   * איפוס מלא של המצב: המשתמשת, ה-Token, וכל ה-Cache של השרת –
-   * כולל קישורי הצפייה הזמניים לתמונות הפרטיות, כך שהם לא נשארים זמינים לחשבון הבא.
-   */
+
   const clearSession = useCallback(() => {
     tokenStorage.clear()
     setToken(null)
@@ -29,7 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
   }, [queryClient])
 
-  // 401 UNAUTHORIZED מכל בקשה → ה-Token פג או המשתמשת נמחקה
   useEffect(() => {
     setUnauthorizedHandler(() => {
       setSessionExpired(true)
@@ -38,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null)
   }, [clearSession])
 
-  // ברענון הדף: אם יש Token שמור, מאמתים אותו מול השרת (GET /auth/me)
   useEffect(() => {
     if (!tokenStorage.get()) return
     let cancelled = false
@@ -54,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         setUser(null)
         setStatus('anonymous')
-        // ב-401 ה-Token כבר נמחק. בשגיאה אחרת (שרת כבוי) משאירים אותו לניסיון הבא
         if (!(error instanceof ApiError && error.status === 401)) {
           setSessionError(`לא ניתן היה לאמת את ההתחברות: ${getErrorMessage(error)}`)
         }
@@ -64,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  /** שמירת התחברות חדשה. אם זו משתמשת אחרת – ה-Cache של הקודמת נמחק */
   const startSession = useCallback(
     (result: AuthResult) => {
       if (user && user.id !== result.user.id) queryClient.clear()
@@ -112,7 +105,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return updated
   }, [])
 
-  // אין Endpoint להתנתקות: מוחקים את ה-Token, ה-Cache, ומבטלים כניסה אוטומטית של Google
   const logout = useCallback(() => {
     googleLogout()
     setSessionError(null)

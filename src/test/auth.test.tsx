@@ -81,7 +81,6 @@ describe('Register (no email code)', () => {
     expect(tokenStorage.get()).toBe('new-token')
     expect(screen.queryByText(/קוד אימות|לאימות/)).not.toBeInTheDocument()
     expect(db.requests.some((r) => /verify-email|resend-code/.test(r.path))).toBe(false)
-    // אפשר לשלוח בקשה מיד
     expect(screen.getByRole('link', { name: '+ בקשה חדשה לעיצוב' })).toBeInTheDocument()
   })
 
@@ -110,7 +109,6 @@ describe('Register (no email code)', () => {
     await user.type(screen.getByLabelText(/אימות סיסמה/), 'Secret123')
     await user.click(screen.getByRole('button', { name: 'הרשמה' }))
     expect(await screen.findByText('כבר קיים חשבון עם כתובת האימייל הזו. נסו להתחבר.')).toBeInTheDocument()
-    // שום דבר לא נשמר מקומית, אין הודעת הצלחה ונשארים במסך ההרשמה
     expect(tokenStorage.get()).toBeNull()
     expect(screen.queryByText(/ההרשמה הושלמה/)).not.toBeInTheDocument()
     expect(location()).toBe('/register')
@@ -136,7 +134,7 @@ describe('Register (no email code)', () => {
     await user.type(screen.getByLabelText(/אימות סיסמה/), 'Secret123')
     await user.dblClick(screen.getByRole('button', { name: 'הרשמה' }))
     expect(await screen.findByRole('button', { name: 'נרשם...' })).toBeDisabled()
-    expect(screen.queryByText(/ההרשמה הושלמה/)).not.toBeInTheDocument() // הצלחה רק אחרי תשובת השרת
+    expect(screen.queryByText(/ההרשמה הושלמה/)).not.toBeInTheDocument()
     release()
     await waitFor(() => expect(location()).toBe('/my-events'))
     expect(calls).toBe(1)
@@ -200,7 +198,7 @@ describe('Session: reload, logout, expired token', () => {
   it('a token that expires during work redirects to login with a clear notice', async () => {
     const { user } = renderApp('/my-events', { as: 'client' })
     await screen.findByRole('heading', { name: 'האירועים שלי' })
-    delete db.users[TOKENS.client] // ה-Token פג בשרת
+    delete db.users[TOKENS.client]
     await user.click(await screen.findByRole('link', { name: /יום הולדת 30 לנועה/ }))
     await waitFor(() => expect(location()).toBe('/login'))
     expect(await screen.findByText('פג תוקף ההתחברות. יש להתחבר מחדש.')).toBeInTheDocument()
@@ -217,7 +215,6 @@ describe('Profile', () => {
     await user.click(screen.getByRole('button', { name: 'שמירת שינויים' }))
     await waitFor(() => expect(db.requests.find((r) => r.method === 'PATCH')?.body).toEqual({ address: null }))
     expect(await screen.findByText('הפרטים נשמרו')).toBeInTheDocument()
-    // אימייל לקריאה בלבד – אין שדה לעריכה
     expect(within(screen.getByRole('main')).queryByRole('textbox', { name: /אימייל/ })).not.toBeInTheDocument()
   })
 })

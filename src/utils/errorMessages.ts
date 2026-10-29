@@ -1,6 +1,5 @@
 import { ApiError } from '../api/apiError'
 
-/** הודעה ידידותית בעברית לכל קוד שגיאה של השרת. פרטים פנימיים של השרת לא מוצגים למשתמשת */
 const ERROR_MESSAGES_HE: Record<string, string> = {
   VALIDATION_ERROR: 'חלק מהשדות אינם תקינים. בדקו ונסו שוב',
   UNAUTHORIZED: 'פג תוקף ההתחברות. יש להתחבר מחדש',
@@ -28,7 +27,6 @@ const ERROR_MESSAGES_HE: Record<string, string> = {
   CANCELLED: 'הפעולה בוטלה',
 }
 
-/** כשאין קוד מוכר – לפי סטטוס ה-HTTP */
 const STATUS_MESSAGES_HE: Record<number, string> = {
   400: 'הבקשה אינה תקינה',
   401: 'יש להתחבר כדי להמשיך',
@@ -42,7 +40,6 @@ const STATUS_MESSAGES_HE: Record<number, string> = {
   503: 'השירות אינו זמין כרגע. נסו שוב מאוחר יותר',
 }
 
-/** ב-409 (CONFLICT) ובחלק מהשגיאות השרת מבחין בין המקרים רק לפי message */
 const MESSAGE_OVERRIDES_HE: Record<string, string> = {
   'This account must sign in with email and password': 'חשבון מנהלת מתחבר רק עם אימייל וסיסמה.',
   'This email is already linked to a different Google account': 'כתובת האימייל הזו כבר מקושרת לחשבון Google אחר.',

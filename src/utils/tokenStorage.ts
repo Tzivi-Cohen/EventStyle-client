@@ -1,5 +1,3 @@
-// שמירת ה-JWT של EventStyle בלבד (לא ה-ID Token של Google).
-// localStorage – כי השרת עובד עם Bearer Token בלי Cookies.
 const TOKEN_KEY = 'eventstyle_token'
 
 export const tokenStorage = {
@@ -14,14 +12,12 @@ export const tokenStorage = {
     try {
       localStorage.setItem(TOKEN_KEY, token)
     } catch {
-      // אחסון חסום (למשל חלון פרטי מוגבל) – ההתחברות תחזיק עד רענון הדף
     }
   },
   clear() {
     try {
       localStorage.removeItem(TOKEN_KEY)
     } catch {
-      // אין מה למחוק
     }
   },
 }

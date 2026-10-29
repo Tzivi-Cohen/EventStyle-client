@@ -1,7 +1,6 @@
 import type { EventItem } from '../types/event'
 import { EVENT_TYPE_LABELS, formatDate, formatPrice } from '../utils/format'
 
-/** פרטי אירוע או בקשה לקריאה – משותף ללקוחה ולמנהלת. notes מוצג רק אם השרת החזיר אותו (מנהלת) */
 export function EventSummary({ event }: { event: EventItem }) {
   return (
     <dl className="details details-grid">

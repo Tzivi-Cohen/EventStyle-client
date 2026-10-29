@@ -38,8 +38,8 @@ describe('Client: event details and private photos', () => {
 
   it('delete is offered only when canDelete is true (photos she uploaded)', async () => {
     await openMyEvent()
-    expect(within(photoCard(0)).getByRole('button', { name: 'מחיקה' })).toBeInTheDocument() // העלתה בעצמה
-    expect(within(photoCard(1)).queryByRole('button', { name: 'מחיקה' })).not.toBeInTheDocument() // העלתה המנהלת
+    expect(within(photoCard(0)).getByRole('button', { name: 'מחיקה' })).toBeInTheDocument()
+    expect(within(photoCard(1)).queryByRole('button', { name: 'מחיקה' })).not.toBeInTheDocument()
     expect(within(photoCard(0)).getByText('העלית')).toBeInTheDocument()
   })
 
@@ -109,7 +109,6 @@ describe('Client: upload private photos', () => {
   it('wrong type and too many files are rejected before sending', async () => {
     await openMyEvent()
     const input = screen.getByLabelText('בחירת תמונות')
-    // שינוי ישיר: user-event מסנן לפי accept, והבדיקה צריכה קובץ שהדפדפן היה מאפשר לבחור ב"כל הקבצים"
     fireEvent.change(input, { target: { files: [new File(['x'], 'doc.pdf', { type: 'application/pdf' }), ...Array.from({ length: 11 }, (_, i) => png(`p${i}.png`))] } })
     expect(await screen.findByText(/doc.pdf: סוג קובץ לא נתמך/)).toBeInTheDocument()
     expect(screen.getByText(/p10.png: עד 10 תמונות בכל העלאה/)).toBeInTheDocument()

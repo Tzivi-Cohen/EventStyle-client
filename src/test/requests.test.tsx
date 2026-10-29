@@ -45,7 +45,6 @@ describe('Client: sending a design request', () => {
     })
     expect(await screen.findByText(/הבקשה נשלחה/)).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'הבקשה ממתינה לאישור הסטודיו' })).toBeInTheDocument()
-    // לפני אישור אין העלאת תמונות
     expect(screen.queryByText(/העלאת תמונות/)).not.toBeInTheDocument()
   })
 
@@ -54,7 +53,6 @@ describe('Client: sending a design request', () => {
     await user.click(await screen.findByRole('button', { name: 'שליחת הבקשה' }))
     expect(await screen.findByText('יש לבחור תאריך')).toBeInTheDocument()
     expect(screen.getByText('יש לבחור חבילה')).toBeInTheDocument()
-    // התקציב מתחיל ריק (לא 0) וחובה למלא אותו
     expect(screen.getByLabelText(/תקציב משוער/)).toHaveValue(null)
     expect(screen.getByText('יש להזין מספר')).toBeInTheDocument()
     expect(db.requests.some((r) => r.path === '/events/requests')).toBe(false)
@@ -145,7 +143,7 @@ describe('Client: editing a pending request', () => {
     const { user } = renderApp('/my-events/20/edit', { as: 'client' })
     const guests = await screen.findByLabelText(/מספר אורחים/)
     await waitFor(() => expect(guests).toHaveValue(120))
-    db.events.find((e) => e.id === 20)!.status = 'New' // המנהלת אישרה בזמן העריכה
+    db.events.find((e) => e.id === 20)!.status = 'New'
     await user.clear(guests)
     await user.type(guests, '10')
     await user.click(screen.getByRole('button', { name: 'שמירת שינויים' }))

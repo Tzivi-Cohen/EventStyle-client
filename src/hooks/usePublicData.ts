@@ -12,7 +12,6 @@ export function usePackages(eventType?: EventType) {
   })
 }
 
-/** הגלריה הציבורית – רק פריטים מפורסמים. בעמוד חדש הנתונים הקודמים נשארים עד שהחדשים מגיעים */
 export function useGallery(filters: GalleryFilters) {
   return useQuery({
     queryKey: queryKeys.gallery(filters),

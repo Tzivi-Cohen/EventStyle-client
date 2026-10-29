@@ -1,4 +1,3 @@
-// נקודת כניסה אחת לממשק הניהול – נטענת ב-Lazy Loading מ-App.tsx
 export { AdminLayout } from '../../layouts/AdminLayout'
 export { AdminEventDetailsPage } from './AdminEventDetailsPage'
 export { AdminEventFormPage } from './AdminEventFormPage'

@@ -1,9 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 
-/**
- * חלון מודאלי נגיש: role=dialog, כותרת מקושרת, Escape לסגירה, מיקוד בפתיחה והחזרת המיקוד בסגירה.
- * לחיצה על הרקע סוגרת (אלא אם busy – למשל בזמן שליחה).
- */
+
 export function Modal({
   title,
   onClose,

@@ -28,7 +28,6 @@ export function useEvent(id: number) {
   })
 }
 
-/** כל שינוי באירוע מרענן את כל רשימות האירועים ואת פרטי האירוע (המפתח מתחיל ב-'events') */
 function useInvalidateEvents() {
   const queryClient = useQueryClient()
   return () => queryClient.invalidateQueries({ queryKey: ['events'] })
@@ -75,7 +74,6 @@ export function useDeleteEvent() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => eventsApi.remove(id),
-    // מחיקת אירוע מסירה גם עותקים בגלריה – מרעננים גם את הגלריה ואת רשימת התמונות למנהלת
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['events'] }),

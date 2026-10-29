@@ -1,7 +1,3 @@
-/**
- * State של העלאת תמונות לאירוע (useReducer): בחירת קבצים, בדיקה מוקדמת, התקדמות ותוצאה.
- * הבדיקות כאן הן לנוחות בלבד – השרת בודק שוב את הסוג (לפי התוכן), הגודל, המגבלה והכפילויות.
- */
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024
 export const MAX_FILES_PER_REQUEST = 10
@@ -11,7 +7,6 @@ export type SelectedFile = { id: string; file: File }
 
 export type UploadState = {
   files: SelectedFile[]
-  /** קבצים שנדחו כבר בבחירה, עם הסיבה */
   rejected: { name: string; reason: string }[]
   status: 'idle' | 'uploading' | 'success' | 'error'
   progress: number
@@ -37,7 +32,6 @@ function rejectReason(file: File): string | null {
   return null
 }
 
-/** @param remaining כמה תמונות עוד אפשר להוסיף לאירוע (50 פחות הקיימות) */
 export function uploadReducer(state: UploadState, action: UploadAction): UploadState {
   switch (action.type) {
     case 'add': {
@@ -66,7 +60,6 @@ export function uploadReducer(state: UploadState, action: UploadAction): UploadS
     case 'success':
       return { ...initialUploadState, status: 'success', progress: 100, message: action.count === 1 ? 'התמונה הועלתה בהצלחה' : `${action.count} תמונות הועלו בהצלחה` }
     case 'failure':
-      // הקבצים נשארים בבחירה, כדי שאפשר יהיה לתקן (למשל להסיר כפולה) ולנסות שוב
       return { ...state, status: 'error', progress: 0, message: action.message }
     case 'reset':
       return initialUploadState

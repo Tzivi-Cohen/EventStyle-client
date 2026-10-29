@@ -11,10 +11,7 @@ import { EVENT_TYPE_LABELS } from '../utils/format'
 
 const isEventType = (value: string | null): value is EventType => (EVENT_TYPES as readonly string[]).includes(value ?? '')
 
-/**
- * המחירון: לכל סוג אירוע – החבילות שלו, ואחריהן החבילות הכלליות (GET /packages?eventType=).
- * הסוג נשמר בכתובת (?type=), כך שאפשר לשתף קישור ולחזור אחורה.
- */
+
 export function PackagesPage() {
   const [params, setParams] = useSearchParams()
   const typeParam = params.get('type')

@@ -29,10 +29,6 @@ const SORT_OPTIONS: SortOption[] = [
 
 const PENDING_COUNT = { status: 'Pending' as const, page: 1, limit: 1 }
 
-/**
- * כל האירועים והבקשות (GET /events): חיפוש, סינון, מיון ועמודים מתבצעים בשרת.
- * בקשה (ממתינה / נדחתה) לא מקבלת סטטוס תפעולי מהרשימה – היא נבדקת בעמוד שלה (אישור או דחייה).
- */
 export function AdminEventsPage() {
   const toast = useToast()
   const [filters, dispatch] = useReducer(eventFiltersReducer, initialEventFilters)
@@ -57,7 +53,6 @@ export function AdminEventsPage() {
     try {
       await deleteEvent.mutateAsync(toDelete.id)
       toast.success('האירוע נמחק')
-      // מחקנו את הפריט האחרון בעמוד – חוזרים לעמוד הקודם
       if (query.data && query.data.data.length === 1 && filters.page > 1) dispatch({ type: 'page', page: filters.page - 1 })
     } catch (e) {
       toast.error(getErrorMessage(e))

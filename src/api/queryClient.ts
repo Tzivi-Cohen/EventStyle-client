@@ -1,7 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { ApiError } from './apiError'
 
-/** שגיאות שלא כדאי לנסות שוב (הבקשה עצמה שגויה, או שאין הרשאה) */
 const isClientError = (error: unknown) => error instanceof ApiError && error.status >= 400 && error.status < 500
 
 export function createQueryClient() {
@@ -17,10 +16,6 @@ export function createQueryClient() {
   })
 }
 
-/**
- * מפתחות ה-Cache במקום אחד – כך שכל רענון (invalidateQueries) משתמש בדיוק באותו מפתח.
- * כל מפתח מתחיל בשם הישות, כך ש-invalidate על ['events'] מרענן את כל רשימות האירועים והפרטים.
- */
 export const queryKeys = {
   packages: (eventType?: string) => ['packages', eventType ?? 'all'] as const,
   adminPackages: (filters: object) => ['packages', 'admin', filters] as const,

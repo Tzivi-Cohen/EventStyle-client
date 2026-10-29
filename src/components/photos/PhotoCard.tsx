@@ -5,10 +5,6 @@ import { Badge } from '../ui/Badges'
 
 export type PhotoViewerMode = 'owner' | 'admin'
 
-/**
- * תמונת אירוע אחת. הקישור זמני: אם התמונה לא נטענת (קישור שפג) – מבקשים קישור חדש פעם אחת.
- * אם אין קישור (url=null) מוצג מציין מקום עם כפתור לניסיון חוזר.
- */
 export function PhotoCard({
   photo,
   consentChecked = photo.publishConsent,
@@ -39,7 +35,6 @@ export function PhotoCard({
     try {
       await onRefreshLink(photo)
     } catch {
-      // הכרטיס ממשיך להציג מציין מקום; אפשר לנסות שוב
     } finally {
       setRefreshing(false)
     }

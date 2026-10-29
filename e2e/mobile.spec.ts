@@ -1,8 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { installMockApi } from './mockApi'
 
-/** התאמה לנייד: תפריט נפתח, אין גלילה אופקית, טבלאות וכרטיסים מתאימים לרוחב */
-
 test('mobile: menu toggle, navigation and no horizontal scroll', async ({ page }) => {
   await installMockApi(page)
   await page.goto('/')
@@ -12,7 +10,7 @@ test('mobile: menu toggle, navigation and no horizontal scroll', async ({ page }
   await toggle.click()
   await page.getByRole('navigation', { name: 'ניווט ראשי' }).getByRole('link', { name: 'חבילות ומחירים' }).click()
   await expect(page).toHaveURL(/\/packages$/)
-  await expect(page.getByRole('navigation', { name: 'ניווט ראשי' })).toBeHidden() // נסגר אחרי מעבר עמוד
+  await expect(page.getByRole('navigation', { name: 'ניווט ראשי' })).toBeHidden()
 
   for (const path of ['/', '/packages', '/gallery', '/login', '/register', '/contact']) {
     await page.goto(path)

@@ -31,11 +31,9 @@ export function AccountPage() {
     values: { fullName: user?.fullName ?? '', phone: user?.phone ?? '', address: user?.address ?? '' },
   })
 
-  // ProtectedRoute מבטיח משתמשת מחוברת
   if (!user) return null
 
   async function onSubmit(form: ProfileForm) {
-    // שולחים רק שדות שהשתנו. טלפון ריק לא נשלח (השרת לא מאפשר למחוק טלפון)
     const update: ProfileUpdate = {}
     if (form.fullName.trim() !== user!.fullName) update.fullName = form.fullName.trim()
     if (form.phone.trim() && form.phone.trim() !== (user!.phone ?? '')) update.phone = form.phone.trim()

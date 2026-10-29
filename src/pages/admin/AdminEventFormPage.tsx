@@ -36,7 +36,6 @@ const NO_FILTERS = {}
 const textLength = (min: number, max: number) => (v: string) =>
   (v.trim().length >= min && v.trim().length <= max) || `${min}–${max} תווים`
 
-/** יצירה ועריכה של אירוע (POST /events, PUT /events/:id – החלפה מלאה) */
 export function AdminEventFormPage() {
   const params = useParams()
   const id = params.id ? Number(params.id) : null
@@ -55,7 +54,6 @@ export function AdminEventFormPage() {
             <QueryState query={eventQuery} loadingLabel="טוען את האירוע...">
               {(event) =>
                 isRequestStatus(event.status) ? (
-                  // בקשה עוברת קודם אישור או דחייה (השרת מחזיר 409 על עריכה)
                   <Alert kind="info" title="זו בקשה של לקוחה">
                     יש לאשר או לדחות את הבקשה לפני עריכה. <Link to={`/admin/events/${event.id}`}>לבדיקת הבקשה</Link>
                   </Alert>
@@ -105,7 +103,6 @@ function EventFormBody({ packages, event }: { packages: AdminPackage[]; event?: 
   } = useForm<EventForm>({ defaultValues: toForm(event) })
 
   const eventType = useWatch({ control, name: 'eventType' })
-  // חבילה מותרת: פעילה, ומסוג האירוע או כללית. חבילה בארכיון – רק אם האירוע כבר משויך אליה
   const allowed = packages.filter(
     (p) => (p.eventType === null || p.eventType === eventType) && (p.isActive || p.id === event?.packageId),
   )

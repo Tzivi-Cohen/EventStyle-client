@@ -11,10 +11,6 @@ import {
 } from '../../utils/uploadReducer'
 import { Alert } from '../ui/Alert'
 
-/**
- * העלאת תמונות לאירוע (POST /events/:id/photos, multipart בשדה photos).
- * כל התמונות נשמרות בשרת כפרטיות. כאן: בחירה, בדיקה מוקדמת, התקדמות ושגיאות (כפילות, מגבלת 50, גודל, סוג).
- */
 export function PhotoUploader({ eventId, currentCount }: { eventId: number; currentCount: number }) {
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
